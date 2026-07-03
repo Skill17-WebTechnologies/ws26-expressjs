@@ -9,7 +9,7 @@ home page plus a small JSON API.
 docker compose up --build
 ```
 
-Then open **http://localhost:3000** (JSON API under `/api`). Stop with `docker compose down`.
+Then open **http://localhost** (JSON API under `/api`). Stop with `docker compose down`.
 
 ## Develop
 
