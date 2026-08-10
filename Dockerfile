@@ -8,5 +8,11 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
+# Generate the Prisma client into node_modules at build time
+RUN npx prisma generate
+
+COPY docker-entrypoint.sh /usr/local/bin/entrypoint
+RUN chmod +x /usr/local/bin/entrypoint
+
 EXPOSE 80
-CMD ["npm", "start"]
+ENTRYPOINT ["entrypoint"]
