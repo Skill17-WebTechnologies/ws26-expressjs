@@ -6,9 +6,15 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:push": "prisma db push"
   },
   "dependencies": {
+    "@prisma/adapter-better-sqlite3": "7.3.0",
+    "@prisma/client": "7.3.0",
     "express": "5.2.1"
+  },
+  "devDependencies": {
+    "prisma": "7.3.0"
   }
 }
