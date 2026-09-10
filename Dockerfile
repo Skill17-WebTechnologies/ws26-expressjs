@@ -10,6 +10,12 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 
+# .env.prod is the deployed configuration; .env is the local one. The platform
+# rewrites .env.prod when your repository is created, so bake it into .env here
+# — the running container then needs no setup step, and `docker run` on this
+# image behaves the same as the deployed service.
+RUN if [ -f .env.prod ]; then cp .env.prod .env; fi
+
 # Generate the Prisma client into node_modules at build time
 RUN npx prisma generate
 
