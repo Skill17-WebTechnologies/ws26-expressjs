@@ -6,7 +6,7 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node --env-file-if-exists=.env server.js",
     "db:push": "prisma db push"
   },
   "dependencies": {

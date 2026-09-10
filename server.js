@@ -1,9 +1,8 @@
-// Plain Node does not read .env on its own the way Laravel or Next.js do, so
-// load it explicitly — before anything reads process.env. In the container the
-// entrypoint copies .env.prod over .env first, so this picks up the deployed
-// configuration; locally it picks up your own .env.
-require('dotenv').config()
-
+// Plain Node does not read .env on its own the way Laravel or Next.js do. It is
+// loaded by `node --env-file-if-exists=.env` (see the start script and
+// docker-entrypoint.sh) rather than a library. In the container the entrypoint
+// copies .env.prod over .env first, so this picks up the deployed configuration;
+// locally it picks up your own .env.
 const express = require('express')
 const { PrismaClient } = require('@prisma/client')
 const { PrismaMariaDb } = require('@prisma/adapter-mariadb')

@@ -1,7 +1,8 @@
-// Prisma auto-loads .env only when there is no config file. With this file
-// present the CLI does not, so `prisma db push` would fall back to the
-// placeholder below and fail with `P1001 ... placeholder:3306`. Loading dotenv
-// here keeps the CLI and the app reading the same configuration.
+// The Prisma CLI runs as its own process, so `node --env-file-if-exists=.env`
+// (which the app uses) does not reach it. Prisma auto-loads .env only when there
+// is no config file; with this one present it does not, so without the import
+// below `prisma db push` falls back to the placeholder and fails with
+// `P1001 ... placeholder:3306`, leaving the schema unsynced.
 import 'dotenv/config'
 import { defineConfig } from 'prisma/config'
 

@@ -36,14 +36,26 @@ There are two configuration files, and which one applies depends on where the ap
 
 | File | Used by | In git? |
 | --- | --- | --- |
-| `.env` | your local machine | no — ignored, and excluded from the image |
+| `.env` | your local machine | no — gitignored, so it never leaves your machine |
 | `.env.prod` | the deployed app | yes — the competition platform writes your database credentials here |
 
+`.env` is deliberately *not* in `.dockerignore`, so a local `docker compose build`
+picks up your own settings. It stays out of git, so it never reaches a deployed
+build — and `.env.prod` is copied over it in the container regardless.
+
 `docker-entrypoint.sh` copies `.env.prod` over `.env` when the container starts, so
-both `prisma db push` and the app read the same values. Node does not load `.env` on
-its own, so `server.js` calls `require('dotenv').config()` and `prisma.config.ts`
-imports `dotenv/config` — remove either and the app falls back to a placeholder
-connection string and cannot reach your database.
+both `prisma db push` and the app read the same values.
+
+Node does not load `.env` on its own, and the app and the Prisma CLI are separate
+processes, so each loads it its own way:
+
+- **The app** — started with `node --env-file-if-exists=.env` (see the `start`
+  script). The `-if-exists` form matters: plain `--env-file` exits with code 9 when
+  the file is missing, which would leave nothing listening.
+- **The Prisma CLI** — `prisma.config.ts` imports `dotenv/config`. Prisma auto-loads
+  `.env` only when there is no config file, and there is one here.
+
+Remove either and that half falls back to a placeholder connection string.
 
 Change the schema, then re-sync with:
 
@@ -57,3 +69,4 @@ npx prisma db push
 - Express 5.2.1
 - Prisma 7.3.0 (`@prisma/adapter-mariadb`)
 - MySQL 8.4 (via `docker compose`)
+- `dotenv` — used only by `prisma.config.ts`; the app uses node's native `--env-file-if-exists`
