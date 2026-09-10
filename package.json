@@ -10,8 +10,9 @@
     "db:push": "prisma db push"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "7.3.0",
+    "@prisma/adapter-mariadb": "7.3.0",
     "@prisma/client": "7.3.0",
+    "dotenv": "17.2.3",
     "express": "5.2.1"
   },
   "devDependencies": {

@@ -1,10 +1,30 @@
+// Plain Node does not read .env on its own the way Laravel or Next.js do, so
+// load it explicitly — before anything reads process.env. In the container the
+// entrypoint copies .env.prod over .env first, so this picks up the deployed
+// configuration; locally it picks up your own .env.
+require('dotenv').config()
+
 const express = require('express')
 const { PrismaClient } = require('@prisma/client')
-const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3')
+const { PrismaMariaDb } = require('@prisma/adapter-mariadb')
 
-// SQLite only — a self-contained file, no external database server. The entrypoint runs
-// `prisma db push` to create it before the server starts.
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL || 'file:./prisma/dev.db' })
+// MySQL over TCP. DATABASE_URL must be a mysql://user:password@host:port/dbname
+// connection string — set it in .env locally; the competition platform writes it
+// into .env.prod for the deployed app. The entrypoint runs `prisma db push`
+// against it before the server starts.
+const databaseUrl = process.env.DATABASE_URL
+
+if (!databaseUrl) {
+  // Deliberately not fatal. Exiting here would leave nothing listening, and the
+  // platform would report only "container failed to start and listen on the
+  // port" — which sends you looking at ports instead of at configuration.
+  console.error(
+    'DATABASE_URL is not set. The app will start, but every database query will fail. ' +
+      'Expected e.g. mysql://user:password@host:3306/dbname'
+  )
+}
+
+const adapter = new PrismaMariaDb(databaseUrl || 'mysql://placeholder:placeholder@placeholder:3306/placeholder')
 const prisma = new PrismaClient({ adapter })
 
 const app = express()
@@ -13,6 +33,11 @@ const PORT = process.env.PORT || 80
 app.use(express.json())
 
 async function getTasks() {
+  // No configuration means no server to reach. Skipping the query avoids a
+  // ~10s connection-pool timeout on every request, so the page renders the
+  // hint below immediately instead of appearing to hang.
+  if (!databaseUrl) return null
+
   try {
     return await prisma.task.findMany({ orderBy: { id: 'asc' } })
   } catch (e) {
@@ -21,6 +46,8 @@ async function getTasks() {
 }
 
 async function seed() {
+  if (!databaseUrl) return
+
   try {
     if ((await prisma.task.count()) === 0) {
       await prisma.task.createMany({
@@ -55,9 +82,12 @@ app.post('/api/tasks', async (req, res) => {
 // Server-rendered home page
 app.get('/', async (req, res) => {
   const tasks = await getTasks()
+  const hint = databaseUrl
+    ? `<p>⚠️ Database not available. Start with <code>docker compose up --build</code>.</p>`
+    : `<p>⚠️ <code>DATABASE_URL</code> is not set. Copy <code>.env.example</code> to <code>.env</code>, or check <code>.env.prod</code> for the deployed app.</p>`
   const body = tasks
     ? `<ul>${tasks.map(t => `<li>${t.done ? '✅' : '⬜️'} ${t.title}</li>`).join('')}</ul>`
-    : `<p>⚠️ Database not available. Start with <code>docker compose up --build</code>.</p>`
+    : hint
   res.type('html').send(`<!doctype html>
 <html lang="en">
 <head>
@@ -76,7 +106,7 @@ app.get('/', async (req, res) => {
 <body>
   <main class="card">
     <h1>Express <span class="v">5.2.1</span></h1>
-    <p>WSC2026 Web Technologies — minimal back-end app, tasks stored with Prisma 7.3.0 (SQLite).</p>
+    <p>WSC2026 Web Technologies — minimal back-end app, tasks stored with Prisma 7.3.0 (MySQL).</p>
     ${body}
     <p>JSON API: <code>GET /api/tasks</code></p>
   </main>
