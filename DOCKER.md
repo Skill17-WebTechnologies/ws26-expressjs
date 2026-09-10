@@ -8,9 +8,9 @@ Open **http://localhost** (server-rendered page).
 JSON API: `GET /api/tasks`, `POST /api/tasks` (`{ "title": "..." }`).
 
 Tasks are stored with **Prisma 7.3.0** in **MySQL**, which `docker compose`
-starts alongside the app. The build copies `.env.prod` into `.env`; the entrypoint
-runs `prisma db push` to sync the schema, then starts the server, and the app
-seeds two rows on first boot.
+starts alongside the app. The entrypoint copies `.env.prod` over `.env`, runs
+`prisma db push` to sync the schema, then starts the server; the app seeds two
+rows on first boot.
 
 The app binds its port even when the database is unreachable, so a
 misconfigured `DATABASE_URL` shows an explanatory page rather than a container

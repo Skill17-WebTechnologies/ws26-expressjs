@@ -2,8 +2,13 @@
 set -e
 cd /app
 
-# .env was written at build time from .env.prod (see Dockerfile), so there is no
-# configuration step here.
+# The platform writes the deployed configuration into .env.prod. Copy it over
+# .env so the schema sync and the app read the same values. A .env baked into
+# the image by a local build is superseded here, which is what we want: the
+# deployed configuration wins.
+if [ -f .env.prod ]; then
+  cp .env.prod .env
+fi
 
 # Sync the schema. Tolerated on failure so a database that is slow or briefly
 # unreachable does not stop the container from starting — the app binds its
