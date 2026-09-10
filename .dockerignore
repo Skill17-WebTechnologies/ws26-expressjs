@@ -1,4 +1,6 @@
 node_modules
 npm-debug.log
 .git
+# Local-only configuration. The deployed values live in .env.prod, which the
+# entrypoint copies over .env inside the container.
 .env
