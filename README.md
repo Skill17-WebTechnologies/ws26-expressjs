@@ -41,10 +41,13 @@ There are two configuration files, and which one applies depends on where the ap
 
 `.env` is deliberately *not* in `.dockerignore`, so a local `docker compose build`
 picks up your own settings. It stays out of git, so it never reaches a deployed
-build — and `.env.prod` is copied over it in the container regardless.
+build — and the build copies `.env.prod` over it anyway, so the deployed
+configuration always wins.
 
-`docker-entrypoint.sh` copies `.env.prod` over `.env` when the container starts, so
-both `prisma db push` and the app read the same values.
+The **Docker build** copies `.env.prod` into `.env` (see the `Dockerfile`), so the
+image ships with the deployed configuration already in place and both `prisma db
+push` and the app read the same file. Nothing configures anything at container
+start.
 
 Node does not load `.env` on its own, and the app and the Prisma CLI are separate
 processes, so each loads it its own way:
