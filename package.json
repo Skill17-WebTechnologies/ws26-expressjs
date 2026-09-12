@@ -7,13 +7,14 @@
   "main": "server.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env server.js",
-    "db:push": "prisma db push"
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "7.3.0",
     "@prisma/client": "7.3.0",
     "dotenv": "17.2.3",
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "mariadb": "3.4.5"
   },
   "devDependencies": {
     "prisma": "7.3.0"
